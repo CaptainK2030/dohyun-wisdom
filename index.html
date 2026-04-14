@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f0e0c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<title>도현의 지혜</title>
+<link rel="manifest" href="manifest.json">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;600&family=Noto+Sans+KR:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#0f0e0c;--surface:#1a1814;--surface2:#221f1a;
+  --gold:#c9a96e;--gold-dim:#8a6e42;
+  --text:#e8e0d0;--text-dim:#8a8070;--text-muted:#5a5248;
+  --morning:#e8a44a;--afternoon:#6ab0d4;--night:#9b8ec4;
+}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-serif;overflow-x:hidden}
+body{display:flex;flex-direction:column;min-height:100vh;min-height:100dvh}
+
+.header{
+  padding:max(env(safe-area-inset-top),16px) 20px 16px;
+  display:flex;align-items:center;justify-content:space-between;
+  border-bottom:1px solid rgba(201,169,110,0.1);
+  background:var(--bg);position:sticky;top:0;z-index:10;
+}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-char{font-family:'Noto Serif KR',serif;font-size:28px;color:var(--gold);line-height:1}
+.logo-text{font-size:13px;color:var(--text-dim);letter-spacing:0.08em;font-weight:300}
+.notif-btn{
+  font-size:12px;padding:7px 14px;border-radius:20px;
+  border:1px solid var(--gold-dim);color:var(--gold);background:transparent;
+  cursor:pointer;font-family:'Noto Sans KR',sans-serif;transition:all 0.2s;
+}
+.notif-btn.active{background:rgba(201,169,110,0.15);border-color:var(--gold)}
+
+.main{flex:1;overflow-y:auto;padding:0 0 80px}
+
+.hero{padding:32px 20px 24px;text-align:center;position:relative}
+.hero::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse 60% 40% at 50% 0%,rgba(201,169,110,0.06) 0%,transparent 70%);
+  pointer-events:none;
+}
+.date-display{font-size:12px;color:var(--text-muted);letter-spacing:0.12em;margin-bottom:12px}
+.day-num{font-family:'Noto Serif KR',serif;font-size:42px;color:var(--gold);line-height:1;font-weight:300}
+.day-sub{font-size:12px;color:var(--text-muted);margin-top:4px;letter-spacing:0.1em}
+.divider{width:40px;height:1px;background:var(--gold-dim);margin:20px auto 28px;opacity:0.4}
+
+.cards{padding:0 16px;display:flex;flex-direction:column;gap:12px}
+.card{
+  background:var(--surface);border-radius:16px;padding:22px 20px;
+  border:1px solid rgba(255,255,255,0.04);position:relative;overflow:hidden;
+  cursor:pointer;transition:transform 0.15s,border-color 0.2s;
+}
+.card:active{transform:scale(0.985)}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;border-radius:16px 16px 0 0}
+.card.morning::before{background:linear-gradient(90deg,var(--morning),transparent)}
+.card.afternoon::before{background:linear-gradient(90deg,var(--afternoon),transparent)}
+.card.night::before{background:linear-gradient(90deg,var(--night),transparent)}
+.card-badge{font-size:11px;letter-spacing:0.08em;font-weight:500;margin-bottom:14px;display:flex;align-items:center;gap:6px}
+.badge-dot{width:6px;height:6px;border-radius:50%;display:inline-block;flex-shrink:0}
+.card.morning .card-badge{color:var(--morning)}.card.morning .badge-dot{background:var(--morning)}
+.card.afternoon .card-badge{color:var(--afternoon)}.card.afternoon .badge-dot{background:var(--afternoon)}
+.card.night .card-badge{color:var(--night)}.card.night .badge-dot{background:var(--night)}
+.card-quote{font-family:'Noto Serif KR',serif;font-size:15px;line-height:1.85;color:var(--text);margin-bottom:14px;font-weight:300}
+.card-source{font-size:11px;color:var(--text-muted);letter-spacing:0.05em}
+.card-loading{display:flex;align-items:center;gap:10px;padding:20px 0}
+.spinner{width:18px;height:18px;border:2px solid rgba(201,169,110,0.2);border-top-color:var(--gold);border-radius:50%;animation:spin 0.8s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-text{font-size:13px;color:var(--text-muted)}
+.refresh-btn{
+  position:absolute;bottom:14px;right:16px;
+  font-size:11px;color:var(--text-muted);background:transparent;
+  border:none;cursor:pointer;padding:4px 8px;border-radius:6px;
+  font-family:'Noto Sans KR',sans-serif;
+}
+.refresh-btn:hover{color:var(--gold)}
+
+.no-key-banner{
+  margin:16px;background:var(--surface);border-radius:12px;
+  padding:20px;border:1px solid rgba(201,169,110,0.2);text-align:center;
+}
+.no-key-banner p{font-size:14px;color:var(--text-dim);line-height:1.7;margin-bottom:14px}
+.setup-btn{
+  padding:10px 24px;border-radius:20px;background:transparent;
+  border:1px solid var(--gold);color:var(--gold);
+  font-size:13px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;
+}
+
+.toast{
+  position:fixed;bottom:100px;left:50%;transform:translateX(-50%) translateY(10px);
+  background:var(--surface2);color:var(--gold);padding:10px 20px;
+  border-radius:20px;font-size:13px;border:1px solid rgba(201,169,110,0.2);
+  opacity:0;transition:all 0.3s;pointer-events:none;z-index:100;white-space:nowrap;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+.bottom-nav{
+  position:fixed;bottom:0;left:0;right:0;background:var(--surface);
+  border-top:1px solid rgba(255,255,255,0.06);display:flex;
+  padding-bottom:env(safe-area-inset-bottom,8px);z-index:10;
+}
+.nav-item{
+  flex:1;padding:12px 4px 8px;display:flex;flex-direction:column;
+  align-items:center;gap:4px;cursor:pointer;color:var(--text-muted);
+  font-size:10px;letter-spacing:0.05em;transition:color 0.2s;
+  border:none;background:transparent;font-family:'Noto Sans KR',sans-serif;
+}
+.nav-item.active{color:var(--gold)}
+.nav-icon{font-size:20px;line-height:1}
+
+.panel{
+  position:fixed;inset:0;background:rgba(15,14,12,0.97);z-index:20;
+  display:flex;flex-direction:column;
+  transform:translateY(100%);transition:transform 0.35s cubic-bezier(0.16,1,0.3,1);
+}
+.panel.open{transform:translateY(0)}
+.panel-header{
+  padding:max(env(safe-area-inset-top),20px) 20px 20px;
+  border-bottom:1px solid rgba(255,255,255,0.06);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.panel-title{font-family:'Noto Serif KR',serif;font-size:20px;color:var(--gold);font-weight:300}
+.close-btn{
+  width:36px;height:36px;border-radius:50%;background:var(--surface2);
+  border:none;color:var(--text-dim);font-size:18px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+}
+.panel-body{flex:1;overflow-y:auto;padding:24px 20px}
+.setting-group{margin-bottom:28px}
+.setting-label{
+  font-size:12px;letter-spacing:0.1em;color:var(--text-muted);
+  margin-bottom:12px;display:flex;align-items:center;gap:8px;
+}
+.setting-label::before{content:'';width:20px;height:1px;background:var(--text-muted);opacity:0.4}
+
+.api-input-wrap{position:relative}
+.api-input{
+  width:100%;background:var(--surface);border:1px solid rgba(255,255,255,0.08);
+  border-radius:12px;color:var(--text);font-size:14px;
+  padding:14px 50px 14px 16px;font-family:'Noto Serif KR',serif;
+  letter-spacing:0.05em;
+}
+.api-input:focus{outline:none;border-color:var(--gold-dim)}
+.api-toggle{
+  position:absolute;right:14px;top:50%;transform:translateY(-50%);
+  background:transparent;border:none;color:var(--text-muted);cursor:pointer;font-size:16px;
+}
+.api-hint{font-size:12px;color:var(--text-muted);margin-top:8px;line-height:1.6}
+.api-hint a{color:var(--gold);text-decoration:none}
+
+.time-row{
+  background:var(--surface);border-radius:12px;padding:16px;
+  display:flex;align-items:center;justify-content:space-between;
+  border:1px solid rgba(255,255,255,0.04);margin-bottom:8px;
+}
+.time-name{font-size:14px;color:var(--text)}
+.time-sub{font-size:11px;color:var(--text-muted);margin-top:2px}
+.time-input{
+  background:var(--surface2);border:1px solid rgba(255,255,255,0.08);
+  border-radius:8px;color:var(--text);font-size:16px;padding:6px 10px;
+  font-family:'Noto Sans KR',sans-serif;width:100px;text-align:center;
+}
+.time-input::-webkit-calendar-picker-indicator{filter:invert(0.6);cursor:pointer}
+
+.save-btn{
+  width:100%;padding:16px;border-radius:12px;
+  background:linear-gradient(135deg,var(--gold-dim),var(--gold));
+  border:none;color:#0f0e0c;font-size:15px;font-weight:500;
+  font-family:'Noto Sans KR',sans-serif;cursor:pointer;margin-top:8px;
+}
+.save-btn:active{opacity:0.85}
+
+.notif-info{
+  background:var(--surface);border-radius:12px;padding:16px;
+  font-size:13px;color:var(--text-dim);line-height:1.7;
+  border:1px solid rgba(201,169,110,0.1);
+}
+.notif-info strong{color:var(--gold);font-weight:400}
+
+/* History view */
+.history-view{display:none;padding:16px 16px 0}
+.history-empty{text-align:center;padding:60px 20px;color:var(--text-muted);font-size:14px;line-height:1.8}
+.hist-card{
+  background:var(--surface);border-radius:12px;padding:16px;
+  margin-bottom:10px;border-left:2px solid var(--gold-dim);
+}
+.hist-date{font-size:11px;color:var(--text-muted);margin-bottom:6px}
+.hist-quote{font-family:'Noto Serif KR',serif;font-size:14px;color:var(--text);line-height:1.75;font-weight:300}
+.hist-source{font-size:11px;color:var(--text-muted);margin-top:6px}
+.hist-type{display:inline-block;font-size:10px;padding:2px 8px;border-radius:8px;margin-bottom:8px}
+.hist-type.morning{background:rgba(232,164,74,0.15);color:var(--morning)}
+.hist-type.afternoon{background:rgba(106,176,212,0.15);color:var(--afternoon)}
+.hist-type.night{background:rgba(155,142,196,0.15);color:var(--night)}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">
+    <span class="logo-char">道</span>
+    <div>
+      <div style="font-size:14px;color:var(--text);font-weight:400;letter-spacing:0.05em">도현의 지혜</div>
+      <div class="logo-text">AI 매일 명언</div>
+    </div>
+  </div>
+  <button class="notif-btn" id="notif-btn" onclick="requestNotif()">알림 설정</button>
+</div>
+
+<div class="main" id="main-view">
+  <div class="hero">
+    <div class="date-display" id="date-display"></div>
+    <div class="day-num" id="day-num"></div>
+    <div class="day-sub">일차</div>
+    <div class="divider"></div>
+  </div>
+  <div id="no-key-banner" class="no-key-banner" style="display:none">
+    <p>Claude AI가 오늘의 명언을<br>새롭게 만들어 드립니다.<br><br>시작하려면 API 키를 설정해 주세요.</p>
+    <button class="setup-btn" onclick="openSettings()">API 키 설정하기</button>
+  </div>
+  <div class="cards" id="cards"></div>
+</div>
+
+<div class="history-view" id="history-view">
+  <div id="history-content"></div>
+</div>
+
+<div class="bottom-nav">
+  <button class="nav-item active" id="tab-today" onclick="setView('today')">
+    <span class="nav-icon">☀</span>오늘
+  </button>
+  <button class="nav-item" id="tab-history" onclick="setView('history')">
+    <span class="nav-icon">📜</span>기록
+  </button>
+  <button class="nav-item" id="tab-settings" onclick="openSettings()">
+    <span class="nav-icon">⚙</span>설정
+  </button>
+</div>
+
+<div class="panel" id="settings-panel">
+  <div class="panel-header">
+    <div class="panel-title">설정</div>
+    <button class="close-btn" onclick="closeSettings()">✕</button>
+  </div>
+  <div class="panel-body">
+    <div class="setting-group">
+      <div class="setting-label">Claude API 키</div>
+      <div class="api-input-wrap">
+        <input type="password" class="api-input" id="api-key-input" placeholder="sk-ant-api03-...">
+        <button class="api-toggle" onclick="toggleApiVis()">👁</button>
+      </div>
+      <div class="api-hint">
+        API 키 발급: <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a><br>
+        키는 이 기기에만 저장되며 외부로 전송되지 않습니다.
+      </div>
+    </div>
+
+    <div class="setting-group">
+      <div class="setting-label">알림 시간</div>
+      <div class="time-row">
+        <div><div class="time-name">🌅 오전 명언</div><div class="time-sub">하루를 여는 마음</div></div>
+        <input type="time" class="time-input" id="time-morning" value="07:00">
+      </div>
+      <div class="time-row">
+        <div><div class="time-name">☀️ 오후 명언</div><div class="time-sub">중심 잡는 시간</div></div>
+        <input type="time" class="time-input" id="time-afternoon" value="12:00">
+      </div>
+      <div class="time-row">
+        <div><div class="time-name">🌙 취침 전 명언</div><div class="time-sub">하루를 마무리하며</div></div>
+        <input type="time" class="time-input" id="time-night" value="22:00">
+      </div>
+      <button class="save-btn" onclick="saveSettings()">저장</button>
+    </div>
+
+    <div class="setting-group">
+      <div class="setting-label">홈 화면 설치 안내</div>
+      <div class="notif-info">
+        <strong>안드로이드 크롬</strong> → 우측 상단 메뉴(⋮) →<br>
+        "홈 화면에 추가" 선택 → 앱처럼 사용 가능
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SYSTEM_PROMPT = `당신은 "도현(道玄)" — 스토아 철학(마르쿠스 아우렐리우스, 에픽테토스, 세네카), 유가 사상(공자, 맹자), 도가 사상(노자, 장자), 불교 철학, 아리스토텔레스의 덕 윤리학을 통달한 현자입니다.
+
+오늘의 명언을 한 가지 생성하세요. 아래 JSON 형식으로만 응답하세요. 다른 텍스트는 절대 포함하지 마세요.
+
+{
+  "quote": "명언 내용 (2~3문장, 한국어, 깊은 통찰이 담긴 문장)",
+  "source": "철학자 이름 — 출전"
+}
+
+규칙:
+- 매번 다른 철학자와 다른 주제를 선택하세요
+- 현대인의 삶, 관계, 사업, 내면의 성장에 적용 가능해야 합니다
+- 번역투가 아닌 자연스러운 한국어로 작성하세요
+- source는 반드시 실제 존재하는 철학자와 저작물이어야 합니다`;
+
+function getTimeType() {
+  const h = new Date().getHours();
+  if (h >= 5 && h < 12) return 'morning';
+  if (h >= 12 && h < 18) return 'afternoon';
+  return 'night';
+}
+
+function getTodayKey() {
+  const d = new Date();
+  return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
+}
+
+function getDayOfYear() {
+  const now = new Date();
+  const start = new Date(now.getFullYear(), 0, 0);
+  return Math.floor((now - start) / 86400000);
+}
+
+function getApiKey() { return localStorage.getItem('api-key') || ''; }
+
+async function generateQuote(type) {
+  const key = getApiKey();
+  if (!key) return null;
+
+  const timeContext = {
+    morning: '아침 시간 — 하루를 시작하는 마음가짐, 의지, 용기에 관한',
+    afternoon: '오후 시간 — 관계, 사업, 인내, 중심 잡기에 관한',
+    night: '취침 전 — 성찰, 내려놓음, 감사, 평정심에 관한'
+  };
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': key,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 300,
+        system: SYSTEM_PROMPT,
+        messages: [{
+          role: 'user',
+          content: `오늘(${getTodayKey()}) ${timeContext[type]} 명언을 생성해 주세요. 이전과 다른 철학자를 선택해 주세요.`
+        }]
+      })
+    });
+
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error?.message || 'API 오류');
+    }
+
+    const data = await res.json();
+    const text = data.content[0].text.trim();
+    const parsed = JSON.parse(text.replace(/```json|```/g, '').trim());
+    return parsed;
+  } catch(e) {
+    console.error(e);
+    return null;
+  }
+}
+
+function getCachedQuotes() {
+  const key = 'quotes-' + getTodayKey();
+  const raw = localStorage.getItem(key);
+  return raw ? JSON.parse(raw) : {};
+}
+
+function cacheQuote(type, data) {
+  const key = 'quotes-' + getTodayKey();
+  const existing = getCachedQuotes();
+  existing[type] = data;
+  localStorage.setItem(key, JSON.stringify(existing));
+}
+
+function saveToHistory(type, data) {
+  const history = JSON.parse(localStorage.getItem('history') || '[]');
+  const entry = { date: getTodayKey(), type, ...data, ts: Date.now() };
+  const exists = history.find(h => h.date === entry.date && h.type === type);
+  if (!exists) {
+    history.unshift(entry);
+    if (history.length > 90) history.pop();
+    localStorage.setItem('history', JSON.stringify(history));
+  }
+}
+
+function makeCard(type, q, loading) {
+  const labels = { morning:'오전 명언 · 기상 후', afternoon:'오후 명언 · 정오', night:'취침 전 명언 · 잠들기 전' };
+  const inner = loading
+    ? `<div class="card-loading"><div class="spinner"></div><span class="loading-text">AI가 오늘의 명언을 생성 중...</span></div>`
+    : `<div class="card-quote">${q.quote}</div><div class="card-source">— ${q.source}</div>
+       <button class="refresh-btn" onclick="refreshCard('${type}',event)">↻ 새 명언</button>`;
+
+  return `<div class="card ${type}" id="card-${type}" onclick="copyCard('${type}')">
+    <div class="card-badge"><span class="badge-dot"></span>${labels[type]}</div>
+    ${inner}
+  </div>`;
+}
+
+async function loadCard(type, forceRefresh) {
+  const cached = getCachedQuotes();
+  const el = document.getElementById('card-' + type);
+
+  if (cached[type] && !forceRefresh) {
+    if (el) el.querySelector('.card-loading') && renderCard(el, type, cached[type]);
+    return;
+  }
+
+  const data = await generateQuote(type);
+  if (data) {
+    cacheQuote(type, data);
+    saveToHistory(type, data);
+    if (el) renderCard(el, type, data);
+  } else {
+    if (el) {
+      const labels = { morning:'오전 명언 · 기상 후', afternoon:'오후 명언 · 정오', night:'취침 전 명언 · 잠들기 전' };
+      el.innerHTML = `<div class="card-badge"><span class="badge-dot"></span>${labels[type]}</div>
+        <div class="card-loading"><span class="loading-text" style="color:var(--morning)">생성 실패. API 키를 확인해 주세요.</span></div>`;
+    }
+  }
+}
+
+function renderCard(el, type, data) {
+  const labels = { morning:'오전 명언 · 기상 후', afternoon:'오후 명언 · 정오', night:'취침 전 명언 · 잠들기 전' };
+  el.innerHTML = `<div class="card-badge"><span class="badge-dot"></span>${labels[type]}</div>
+    <div class="card-quote">${data.quote}</div>
+    <div class="card-source">— ${data.source}</div>
+    <button class="refresh-btn" onclick="refreshCard('${type}',event)">↻ 새 명언</button>`;
+}
+
+async function refreshCard(type, e) {
+  e && e.stopPropagation();
+  const el = document.getElementById('card-' + type);
+  const labels = { morning:'오전 명언 · 기상 후', afternoon:'오후 명언 · 정오', night:'취침 전 명언 · 잠들기 전' };
+  if (el) {
+    el.innerHTML = `<div class="card-badge"><span class="badge-dot"></span>${labels[type]}</div>
+      <div class="card-loading"><div class="spinner"></div><span class="loading-text">새 명언 생성 중...</span></div>`;
+  }
+  await loadCard(type, true);
+}
+
+function copyCard(type) {
+  const el = document.getElementById('card-' + type);
+  if (!el) return;
+  const q = el.querySelector('.card-quote');
+  const s = el.querySelector('.card-source');
+  if (q && s) {
+    navigator.clipboard.writeText(q.textContent + ' ' + s.textContent).then(() => showToast('명언이 복사되었습니다'));
+  }
+}
+
+function renderToday() {
+  const now = new Date();
+  const dateStr = `${now.getFullYear()}년 ${now.getMonth()+1}월 ${now.getDate()}일`;
+  document.getElementById('date-display').textContent = dateStr;
+  document.getElementById('day-num').textContent = getDayOfYear();
+
+  const key = getApiKey();
+  const banner = document.getElementById('no-key-banner');
+  const cards = document.getElementById('cards');
+
+  if (!key) {
+    banner.style.display = 'block';
+    cards.innerHTML = '';
+    return;
+  }
+  banner.style.display = 'none';
+
+  const types = ['morning','afternoon','night'];
+  const cached = getCachedQuotes();
+  cards.innerHTML = types.map(t =>
+    makeCard(t, cached[t], !cached[t])
+  ).join('');
+
+  types.forEach(t => { if (!cached[t]) loadCard(t, false); });
+}
+
+function renderHistory() {
+  const history = JSON.parse(localStorage.getItem('history') || '[]');
+  const container = document.getElementById('history-content');
+  if (!history.length) {
+    container.innerHTML = '<div class="history-empty">아직 기록이 없습니다.<br>오늘의 명언이 생성되면<br>이곳에 쌓입니다.</div>';
+    return;
+  }
+  const typeLabel = { morning:'오전', afternoon:'오후', night:'취침 전' };
+  container.innerHTML = history.map(h => `
+    <div class="hist-card">
+      <div class="hist-date">${h.date}</div>
+      <span class="hist-type ${h.type}">${typeLabel[h.type]}</span>
+      <div class="hist-quote">${h.quote}</div>
+      <div class="hist-source">— ${h.source}</div>
+    </div>
+  `).join('');
+}
+
+function setView(v) {
+  document.getElementById('main-view').style.display = v === 'today' ? 'block' : 'none';
+  document.getElementById('history-view').style.display = v === 'history' ? 'block' : 'none';
+  ['today','history'].forEach(t => document.getElementById('tab-'+t)?.classList.toggle('active', t===v));
+  if (v === 'history') renderHistory();
+}
+
+function openSettings() {
+  document.getElementById('api-key-input').value = getApiKey();
+  document.getElementById('time-morning').value = localStorage.getItem('t-morning') || '07:00';
+  document.getElementById('time-afternoon').value = localStorage.getItem('t-afternoon') || '12:00';
+  document.getElementById('time-night').value = localStorage.getItem('t-night') || '22:00';
+  document.getElementById('settings-panel').classList.add('open');
+}
+function closeSettings() { document.getElementById('settings-panel').classList.remove('open'); }
+
+function toggleApiVis() {
+  const inp = document.getElementById('api-key-input');
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+}
+
+function saveSettings() {
+  const key = document.getElementById('api-key-input').value.trim();
+  if (key) localStorage.setItem('api-key', key);
+  localStorage.setItem('t-morning', document.getElementById('time-morning').value);
+  localStorage.setItem('t-afternoon', document.getElementById('time-afternoon').value);
+  localStorage.setItem('t-night', document.getElementById('time-night').value);
+  scheduleNotifications();
+  showToast('저장되었습니다');
+  setTimeout(() => { closeSettings(); renderToday(); }, 800);
+}
+
+async function requestNotif() {
+  if (!('Notification' in window)) { showToast('알림을 지원하지 않는 브라우저입니다'); return; }
+  const p = await Notification.requestPermission();
+  if (p === 'granted') {
+    document.getElementById('notif-btn').classList.add('active');
+    document.getElementById('notif-btn').textContent = '알림 켜짐';
+    scheduleNotifications();
+    showToast('알림이 활성화되었습니다');
+  } else {
+    showToast('알림 권한이 거부되었습니다');
+  }
+}
+
+function scheduleNotifications() {
+  if (Notification.permission !== 'granted') return;
+  (window._ntids || []).forEach(clearTimeout);
+  window._ntids = [];
+  const times = [
+    { key:'morning', label:'오전 명언 🌅', type:'morning' },
+    { key:'afternoon', label:'오후 명언 ☀️', type:'afternoon' },
+    { key:'night', label:'취침 전 명언 🌙', type:'night' },
+  ];
+  times.forEach(({ key, label, type }) => {
+    const val = localStorage.getItem('t-'+key) || {morning:'07:00',afternoon:'12:00',night:'22:00'}[key];
+    const [h, m] = val.split(':').map(Number);
+    const now = new Date();
+    const target = new Date(now);
+    target.setHours(h, m, 0, 0);
+    if (target <= now) target.setDate(target.getDate() + 1);
+    const tid = setTimeout(async () => {
+      const cached = getCachedQuotes();
+      let q = cached[type];
+      if (!q) q = await generateQuote(type);
+      if (q) {
+        new Notification(label, { body: q.quote + '\n— ' + q.source, icon: './icon-192.svg' });
+      }
+      scheduleNotifications();
+    }, target - now);
+    window._ntids.push(tid);
+  });
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// Init
+renderToday();
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
+if (Notification.permission === 'granted') {
+  document.getElementById('notif-btn').classList.add('active');
+  document.getElementById('notif-btn').textContent = '알림 켜짐';
+  scheduleNotifications();
+}
+</script>
+</body>
+</html>
