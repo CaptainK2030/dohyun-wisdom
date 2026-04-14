@@ -66,7 +66,9 @@ body{display:flex;flex-direction:column;min-height:100vh;min-height:100dvh}
 .card.afternoon .card-badge{color:var(--afternoon)}.card.afternoon .badge-dot{background:var(--afternoon)}
 .card.night .card-badge{color:var(--night)}.card.night .badge-dot{background:var(--night)}
 .card-quote{font-family:'Noto Serif KR',serif;font-size:15px;line-height:1.85;color:var(--text);margin-bottom:14px;font-weight:300}
-.card-source{font-size:11px;color:var(--text-muted);letter-spacing:0.05em}
+.card-original{font-size:12px;color:var(--gold-dim);letter-spacing:0.08em;line-height:1.8;margin-bottom:12px;font-family:serif;border-left:2px solid var(--gold-dim);padding-left:12px;opacity:0.8}
+.card-source-ko{font-size:11px;color:var(--text-muted);letter-spacing:0.05em;margin-bottom:2px}
+.card-source-orig{font-size:11px;color:var(--text-muted);letter-spacing:0.08em;opacity:0.6}
 .card-loading{display:flex;align-items:center;gap:10px;padding:20px 0}
 .spinner{width:18px;height:18px;border:2px solid rgba(201,169,110,0.2);border-top-color:var(--gold);border-radius:50%;animation:spin 0.8s linear infinite;flex-shrink:0}
 @keyframes spin{to{transform:rotate(360deg)}}
@@ -303,7 +305,9 @@ const SYSTEM_PROMPT = `당신은 "도현(道玄)" — 다음 사상과 고전을
 
 {
   "quote": "명언 내용 (2~3문장, 한국어, 깊은 통찰이 담긴 문장)",
-  "source": "인물 또는 출전 이름 — 책명"
+  "original": "원문 그대로 (한문·라틴어·그리스어 등. 확실하지 않으면 빈 문자열)",
+  "source_ko": "인물 한국어명 — 책명 한국어",
+  "source_orig": "인물 원어명 — 책명 원어 (예: 孫武 — 孫子兵法, Marcus Aurelius — Meditationes, Ἐπίκτητος — Ἐγχειρίδιον)"
 }
 
 규칙:
@@ -311,7 +315,8 @@ const SYSTEM_PROMPT = `당신은 "도현(道玄)" — 다음 사상과 고전을
 - 인간 관계, 신뢰와 배신 분별, 사업 전략, 리더십, 내면의 성장에 적용 가능해야 합니다
 - 병법과 전략의 지혜를 현대 인간관계와 사업에 연결하여 해석하세요
 - 번역투가 아닌 자연스러운 한국어로 작성하세요
-- source는 반드시 실제 존재하는 인물과 저작물이어야 합니다`;
+- 원문은 반드시 실제 원전 문장이어야 합니다. 불확실하면 빈 문자열로 두세요
+- source_orig는 반드시 "한글이름(원어명) — 한글책명(원어책명)" 형식으로 표기하세요. 예: 손무(孫武) — 손자병법(孫子兵法), 공자(孔子) — 논어(論語), 마르쿠스 아우렐리우스(Marcus Aurelius) — 명상록(Meditationes)`;
 
 function getTimeType() {
   const h = new Date().getHours();
@@ -406,7 +411,10 @@ function makeCard(type, q, loading) {
   const labels = { morning:'오전 명언 · 기상 후', afternoon:'오후 명언 · 정오', night:'취침 전 명언 · 잠들기 전' };
   const inner = loading
     ? `<div class="card-loading"><div class="spinner"></div><span class="loading-text">AI가 오늘의 명언을 생성 중...</span></div>`
-    : `<div class="card-quote">${q.quote}</div><div class="card-source">— ${q.source}</div>
+    : `<div class="card-quote">${q.quote}</div>
+       ${q.original ? `<div class="card-original">${q.original}</div>` : ''}
+       <div class="card-source-ko">— ${q.source_ko || q.source || ''}</div>
+       ${q.source_orig ? `<div class="card-source-orig">${q.source_orig}</div>` : ''}
        <button class="refresh-btn" onclick="refreshCard('${type}',event)">↻ 새 명언</button>`;
 
   return `<div class="card ${type}" id="card-${type}" onclick="copyCard('${type}')">
@@ -442,7 +450,9 @@ function renderCard(el, type, data) {
   const labels = { morning:'오전 명언 · 기상 후', afternoon:'오후 명언 · 정오', night:'취침 전 명언 · 잠들기 전' };
   el.innerHTML = `<div class="card-badge"><span class="badge-dot"></span>${labels[type]}</div>
     <div class="card-quote">${data.quote}</div>
-    <div class="card-source">— ${data.source}</div>
+    ${data.original ? `<div class="card-original">${data.original}</div>` : ''}
+    <div class="card-source-ko">— ${data.source_ko || data.source || '' }</div>
+    ${data.source_orig ? `<div class="card-source-orig">${data.source_orig}</div>` : ''}
     <button class="refresh-btn" onclick="refreshCard('${type}',event)">↻ 새 명언</button>`;
 }
 
