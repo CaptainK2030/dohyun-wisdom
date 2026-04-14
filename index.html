@@ -12,10 +12,10 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 :root{
-  --bg:#0f0e0c;--surface:#1a1814;--surface2:#221f1a;
-  --gold:#c9a96e;--gold-dim:#8a6e42;
-  --text:#e8e0d0;--text-dim:#8a8070;--text-muted:#5a5248;
-  --morning:#e8a44a;--afternoon:#6ab0d4;--night:#9b8ec4;
+  --bg:#1a1a1a;--surface:#262626;--surface2:#303030;
+  --gold:#d4aa6e;--gold-dim:#a07840;
+  --text:#f0ead8;--text-dim:#c8bda8;--text-muted:#a09080;
+  --morning:#f0a84a;--afternoon:#6ab8d8;--night:#a898d0;
 }
 html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-serif;overflow-x:hidden}
 body{display:flex;flex-direction:column;min-height:100vh;min-height:100dvh}
@@ -51,8 +51,8 @@ body{display:flex;flex-direction:column;min-height:100vh;min-height:100dvh}
 
 .cards{padding:0 16px;display:flex;flex-direction:column;gap:12px}
 .card{
-  background:var(--surface);border-radius:16px;padding:22px 20px;
-  border:1px solid rgba(255,255,255,0.04);position:relative;overflow:hidden;
+  background:var(--surface);border-radius:16px;padding:26px 22px;
+  border:1px solid rgba(255,255,255,0.08);position:relative;overflow:hidden;
   cursor:pointer;transition:transform 0.15s,border-color 0.2s;
 }
 .card:active{transform:scale(0.985)}
@@ -60,15 +60,15 @@ body{display:flex;flex-direction:column;min-height:100vh;min-height:100dvh}
 .card.morning::before{background:linear-gradient(90deg,var(--morning),transparent)}
 .card.afternoon::before{background:linear-gradient(90deg,var(--afternoon),transparent)}
 .card.night::before{background:linear-gradient(90deg,var(--night),transparent)}
-.card-badge{font-size:11px;letter-spacing:0.08em;font-weight:500;margin-bottom:14px;display:flex;align-items:center;gap:6px}
+.card-badge{font-size:12px;letter-spacing:0.08em;font-weight:500;margin-bottom:16px;display:flex;align-items:center;gap:6px}
 .badge-dot{width:6px;height:6px;border-radius:50%;display:inline-block;flex-shrink:0}
 .card.morning .card-badge{color:var(--morning)}.card.morning .badge-dot{background:var(--morning)}
 .card.afternoon .card-badge{color:var(--afternoon)}.card.afternoon .badge-dot{background:var(--afternoon)}
 .card.night .card-badge{color:var(--night)}.card.night .badge-dot{background:var(--night)}
-.card-quote{font-family:'Noto Serif KR',serif;font-size:15px;line-height:1.85;color:var(--text);margin-bottom:14px;font-weight:300}
-.card-original{font-size:12px;color:var(--gold-dim);letter-spacing:0.08em;line-height:1.8;margin-bottom:12px;font-family:serif;border-left:2px solid var(--gold-dim);padding-left:12px;opacity:0.8}
+.card-quote{font-family:'Noto Serif KR',serif;font-size:17px;line-height:1.95;color:var(--text);margin-bottom:16px;font-weight:400}
+.card-original{font-size:14px;color:#c8b88a;letter-spacing:0.04em;line-height:1.85;margin-bottom:14px;font-family:serif;border-left:2px solid var(--gold);padding-left:14px;font-style:italic}
 .card-original-ko{font-size:12px;color:var(--text-dim);line-height:1.75;margin-top:6px;margin-bottom:12px;font-style:normal}
-.card-source-ko{font-size:11px;color:var(--text-muted);letter-spacing:0.05em;margin-bottom:2px}
+.card-source-ko{font-size:13px;color:var(--text-dim);letter-spacing:0.05em;margin-bottom:2px}
 .card-source-orig{font-size:11px;color:var(--text-muted);letter-spacing:0.08em;opacity:0.6}
 .card-loading{display:flex;align-items:center;gap:10px;padding:20px 0}
 .spinner{width:18px;height:18px;border:2px solid rgba(201,169,110,0.2);border-top-color:var(--gold);border-radius:50%;animation:spin 0.8s linear infinite;flex-shrink:0}
@@ -417,8 +417,7 @@ function makeCard(type, q, loading) {
     ? `<div class="card-loading"><div class="spinner"></div><span class="loading-text">AI가 오늘의 명언을 생성 중...</span></div>`
     : `<div class="card-quote">${q.quote}</div>
        ${q.original ? `<div class="card-original">${q.original}</div>` : ''}
-       <div class="card-source-ko">— ${q.source_ko || q.source || ''}</div>
-       ${q.source_orig ? `<div class="card-source-orig">${q.source_orig}</div>` : ''}
+       <div class="card-source-ko">— ${q.source_orig || q.source_ko || q.source || '' }</div>
        <button class="refresh-btn" onclick="refreshCard('${type}',event)">↻ 새 명언</button>`;
 
   return `<div class="card ${type}" id="card-${type}" onclick="copyCard('${type}')">
@@ -455,8 +454,7 @@ function renderCard(el, type, data) {
   el.innerHTML = `<div class="card-badge"><span class="badge-dot"></span>${labels[type]}</div>
     <div class="card-quote">${data.quote}</div>
     ${data.original ? `<div class="card-original">${data.original}</div>` : ''}
-    <div class="card-source-ko">— ${data.source_ko || data.source || '' }</div>
-    ${data.source_orig ? `<div class="card-source-orig">${data.source_orig}</div>` : ''}
+    <div class="card-source-ko">— ${data.source_orig || data.source_ko || data.source || '' }</div>
     <button class="refresh-btn" onclick="refreshCard('${type}',event)">↻ 새 명언</button>`;
 }
 
